@@ -16,13 +16,15 @@ contract ElementContract {
     
     //Function to tranfer an amount of cash to an owner account
     function transferOwner(uint amount) public onlyBy(owner){
-            require(address(this).balance >= amount);
+            require(address(this).balance >= amount,
+             "Fund insufficient.");
             owner.transfer(amount);
     }
     
     //Function to tranfer an amount of cash to an account
     function transferTo(uint amount, address to)public onlyBy(owner){
-        require(address(this).balance >= amount);
+        require(address(this).balance >= amount,
+        "Fund insufficient.");
         require(to != address(0));
         to.transfer(amount);
     }
