@@ -14,6 +14,19 @@ contract ElementContract {
         return (address(this).balance);
     }
     
+    //Function to tranfer an amount of cash to an owner account
+    function transferOwner(uint amount) public onlyBy(owner){
+            require(address(this).balance >= amount);
+            owner.transfer(amount);
+    }
+    
+    //Function to tranfer an amount of cash to an account
+    function transferTo(uint amount, address to)public onlyBy(owner){
+        require(address(this).balance >= amount);
+        require(to != address(0));
+        to.transfer(amount);
+    }
+    
     //Function for owner
     modifier onlyBy(address _account)
     {
@@ -22,11 +35,5 @@ contract ElementContract {
             "Sender not authorized."
         );
         _;
-    }
-    
-    //Function to tranfer an amount of cash to an owner account
-    function transfer(uint amount) public onlyBy(owner){
-            require(address(this).balance >= amount);
-            owner.transfer(amount);
     }
 }
