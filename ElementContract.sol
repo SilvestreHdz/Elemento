@@ -22,14 +22,21 @@ contract ElementContract {
     }
     
     //Function to save data of personal accounts in map accounts
-    function join(string name, string lastName, uint amount) public{
-        Account storage account = accounts[msg.sender];
-        account.name = name;
-        account.lastName = lastName;
-        account.addr = msg.sender;
-        account.numberTrx = 1;
-        account.depositAmount = amount;
-        account.depositCounter = 0;
+    function join(string name, string lastName, uint amount) private{
+        
+        if(accountJoined(msg.sender)){
+            Account storage accountAux = accounts[msg.sender];
+            accountAux.numberTrx = accountAux.numberTrx + 1;
+            accountAux.depositAmount = accountAux.depositAmount +amount;
+        }else{
+            Account storage account = accounts[msg.sender];
+            account.name = name;
+            account.lastName = lastName;
+            account.addr = msg.sender;
+            account.numberTrx = 1;
+            account.depositAmount = amount;
+            account.depositCounter = 0;
+        }
         joinedAccounts[msg.sender] = true;
     }
     
