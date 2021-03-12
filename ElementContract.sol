@@ -53,6 +53,8 @@ contract ElementContract {
     
     //Function to tranfer an amount of cash to an account
     function transferTo(uint amount, address to)public onlyBy(owner){
+        require(accountJoined(msg.sender),
+            "Account not registered.");
         require(address(this).balance >= amount);
         require(to != address(0));
         to.transfer(amount);
