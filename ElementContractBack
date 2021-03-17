@@ -16,7 +16,7 @@ contract ElementContract {
     function invest(uint amount)public payable{
         require(msg.value == amount);
         payable(owner).transfer((amount*80)/100);
-        //join(amount);
+        join(amount);
     }
     
    //Function to save data of personal accounts in map accounts
@@ -26,9 +26,9 @@ contract ElementContract {
             Account memory account = accounts[msg.sender][count-1];
             uint numberTrxAux = (account.numberTrx+1);
             
-            accounts[msg.sender][count] = Account(msg.sender,numberTrxAux,amount,0);
+            accounts[msg.sender].push(Account(msg.sender,numberTrxAux,amount,0));
         }else{
-            accounts[msg.sender][0] = Account(msg.sender,1,amount,0);
+            accounts[msg.sender].push(Account(msg.sender,1,amount,0));
         }
         joinedAccounts[msg.sender] = true;
     }
@@ -59,11 +59,11 @@ contract ElementContract {
         require(accountJoined(msg.sender),
             "Account not registered.");
         uint count = accounts[msg.sender].length;  
-        Account[] memory array = new Account[](count-1);
+        Account[] memory array = new Account[](count);
         for (uint i = 0; i < count; i++) {
             array[i] = accounts[msg.sender][i];
         }
-        return array;    
+        return array;
     }
     
     //Function to validate if an account exist
