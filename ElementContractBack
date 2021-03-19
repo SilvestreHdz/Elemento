@@ -7,6 +7,7 @@ contract ElementContract {
         uint numberTrx;
         uint depositAmount;
         uint depositCounter;
+        uint depositYields;
     }
     
     mapping(address => Account[]) private accounts;
@@ -26,12 +27,23 @@ contract ElementContract {
             Account memory account = accounts[msg.sender][count-1];
             uint numberTrxAux = (account.numberTrx+1);
             
-            accounts[msg.sender].push(Account(msg.sender,numberTrxAux,amount,0));
+            accounts[msg.sender].push(Account(msg.sender,numberTrxAux,amount,0,0));
         }else{
-            accounts[msg.sender].push(Account(msg.sender,1,amount,0));
+            accounts[msg.sender].push(Account(msg.sender,1,amount,0,0));
         }
         joinedAccounts[msg.sender] = true;
     }
+    
+    //Function to deposit yields in an Account
+    function depositYields( uint amount,address to,uint transactionNumber) private{
+         Account storage accountAux = accounts[to][transactionNumber-1];
+         uint numberTrx = accountAux.numberTrx;
+         uint depositAmount =accountAux.depositAmount;
+         uint depositCounter = (accountAux.depositCounter+1);
+         uint depostiYields =(accountAux.depositYields+amount);
+         accounts[to][transactionNumber-1]=(Account(to,numberTrx,depositAmount,depositCounter,depostiYields));
+    }
+    
     
    //Function to get the balance of the contract
    function getBalance() public view onlyBy(owner) returns(uint)  {
@@ -46,11 +58,12 @@ contract ElementContract {
     }
     
     //Function to tranfer an amount of cash to an account
-    function transferTo(uint amount, address to)public onlyBy(owner){
+    function transferTo(uint amount, address to, uint transactionNumber)public onlyBy(owner){
         require(accountJoined(to),
             "Account not registered.");
         require(address(this).balance >= amount);
         require(to != address(0));
+        depositYields(amount,to,transactionNumber);
         payable(to).transfer(amount);
     }
     
