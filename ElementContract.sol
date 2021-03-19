@@ -1,4 +1,4 @@
-pragma solidity ^0.4.24;
+pragma solidity ^0.8.2;
 
 contract ElementContract {
     address private owner = msg.sender;
@@ -7,33 +7,43 @@ contract ElementContract {
         uint numberTrx;
         uint depositAmount;
         uint depositCounter;
+        uint depositYields;
     }
     
-    mapping(address => Account) private accounts;
+    mapping(address => Account[]) private accounts;
     mapping(address => bool) private joinedAccounts;
     
     //Function to deposit in the contract: 80% owner, 20% contract
     function invest(uint amount)public payable{
         require(msg.value == amount);
-        owner.transfer((amount*80)/100);
+        payable(owner).transfer((amount*80)/100);
         join(amount);
     }
     
-    //Function to save data of personal accounts in map accounts
+   //Function to save data of personal accounts in map accounts
     function join(uint amount) private{
         if(accountJoined(msg.sender)){
-            Account storage accountAux = accounts[msg.sender];
-            accountAux.numberTrx = accountAux.numberTrx + 1;
-            accountAux.depositAmount = accountAux.depositAmount +amount;
+            uint count = accounts[msg.sender].length;
+            Account memory account = accounts[msg.sender][count-1];
+            uint numberTrxAux = (account.numberTrx+1);
+            
+            accounts[msg.sender].push(Account(msg.sender,numberTrxAux,amount,0,0));
         }else{
-            Account storage account = accounts[msg.sender];
-            account.addr = msg.sender;
-            account.numberTrx = 1;
-            account.depositAmount = amount;
-            account.depositCounter = 0;
+            accounts[msg.sender].push(Account(msg.sender,1,amount,0,0));
         }
         joinedAccounts[msg.sender] = true;
     }
+    
+    //Function to deposit yields in an Account
+    function depositYields( uint amount,address to,uint transactionNumber) private{
+         Account storage accountAux = accounts[to][transactionNumber-1];
+         uint numberTrx = accountAux.numberTrx;
+         uint depositAmount =accountAux.depositAmount;
+         uint depositCounter = (accountAux.depositCounter+1);
+         uint depostiYields =(accountAux.depositYields+amount);
+         accounts[to][transactionNumber-1]=(Account(to,numberTrx,depositAmount,depositCounter,depostiYields));
+    }
+    
     
    //Function to get the balance of the contract
    function getBalance() public view onlyBy(owner) returns(uint)  {
@@ -44,24 +54,29 @@ contract ElementContract {
     function transferToOwner(uint amount) public onlyBy(owner){
         require(address(this).balance >= amount,
             "Insufficient balance amount");
-        owner.transfer(amount);
+        payable(owner).transfer(amount);
     }
     
     //Function to tranfer an amount of cash to an account
-    function transferTo(uint amount, address to)public onlyBy(owner){
+    function transferTo(uint amount, address to, uint transactionNumber)public onlyBy(owner){
         require(accountJoined(to),
             "Account not registered.");
         require(address(this).balance >= amount);
         require(to != address(0));
-        to.transfer(amount);
+        depositYields(amount,to,transactionNumber);
+        payable(to).transfer(amount);
     }
     
     //Function to get info about personal accounts
-    function getAccountBalance() public view returns(address, uint, uint, uint){
+    function getAccountBalance() public view returns(Account[] memory){
         require(accountJoined(msg.sender),
             "Account not registered.");
-        Account memory account = accounts[msg.sender];
-        return (account.addr, account.numberTrx, account.depositAmount, account.depositCounter);
+        uint count = accounts[msg.sender].length;  
+        Account[] memory array = new Account[](count);
+        for (uint i = 0; i < count; i++) {
+            array[i] = accounts[msg.sender][i];
+        }
+        return array;
     }
     
     //Function to validate if an account exist
