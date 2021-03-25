@@ -1,7 +1,9 @@
-pragma solidity ^0.8.2;
+pragma solidity ^0.8.3;
 
 contract ElementContract {
     address private owner = msg.sender;
+    uint profitPercent = 0;
+    
     struct Account{
         address addr;
         uint numberTrx;
@@ -58,13 +60,18 @@ contract ElementContract {
     }
     
     //Function to tranfer an amount of cash to an account
-    function transferTo(uint amount, address to, uint transactionNumber)public onlyBy(owner){
+    function transferTo(address to, uint transactionNumber)public onlyBy(owner){
         require(accountJoined(to),
             "Account not registered.");
-        require(address(this).balance >= amount);
         require(to != address(0));
-        depositYields(amount,to,transactionNumber);
-        payable(to).transfer(amount);
+        Account memory accountAux = accounts[to][transactionNumber-1];
+        if(accountAux.depositCounter < 12){
+            uint amount = (accountAux.depositAmount*profitPercent)/100;
+            depositYields(amount,to,transactionNumber);
+            payable(to).transfer(amount);
+        }else{
+            revert("This transaction exceeds the number of deposits limit");
+        }
     }
     
     //Function to get info about personal accounts
@@ -82,6 +89,11 @@ contract ElementContract {
     //Function to validate if an account exist
     function accountJoined(address addr) private view returns(bool){
         return joinedAccounts[addr];
+    }
+    
+    //Function to modify profitPercent
+    function modifyProfitPercent(uint percent) public{
+        profitPercent = percent;
     }
     
     //Function for owner
