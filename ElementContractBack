@@ -52,18 +52,18 @@ contract ElementContract {
           uint256 numberTrx = accountAux.numberTrx;
           uint256 depositAmount = accountAux.depositAmount;
           uint256 depositCounter = (accountAux.depositCounter + 1);
-          uint256 depostiYields = (accountAux.depositYields + amount);
+          uint256 depositYield = (accountAux.depositYields + amount);
           accounts[to][transactionNumber - 1] = (
-                  Account(to, numberTrx, depositAmount, depositCounter, depostiYields,1)
+                  Account(to, numberTrx, depositAmount, depositCounter, depositYield,1)
                   );
             
         }else{
             accounts[to][transactionNumber - 1] = (
-                  Account(accountAux.addr, accountAux.numberTrx, accountAux.depositAmount, accountAux.depositCounter, accountAux.depostiYields,1)
+                  Account(accountAux.addr, accountAux.numberTrx, accountAux.depositAmount, accountAux.depositCounter, accountAux.depositYields,1)
                   );
         }
             
-        }
+        
     }
 
     //Function to get the balance of the contract
@@ -84,17 +84,17 @@ contract ElementContract {
         for (uint256 i = 0; i < keyList.length; i++) {
             address addrAux = keyList[i];
             for (uint256 j = 0; j < accounts[addrAux].length; j++) {
-                Account memory accountAux = accounts[addrAux][j];
-                if (accountAux.depositCounter < 12 && accountAux.flagFirstMount == 0 ) {
+                Account storage accountAux = accounts[addrAux][j];
+                if (accountAux.depositCounter < 12 && accountAux.flagFirstMount > 0 ) {
                     amount = (accountAux.depositAmount * profitPercent) / 100;
                     sum = sum + amount;
                     
+                }else{
+                 depositYields(0,
+                         addrAux,
+                         accountAux.numberTrx);
                 }
             }
-             depositYields(0,
-                         addrAux,
-                         0
-                            );
         }
         amount = 0;
         if (sum > 0) {
@@ -120,7 +120,7 @@ contract ElementContract {
                 revert("This transaction exceeds the number of deposits limit");
             }
         } else {
-            revert("No benefits to deposit");
+        //    revert("No benefits to deposit");
         }
     }
 
@@ -151,3 +151,4 @@ contract ElementContract {
         _;
     }
 }
+
