@@ -1,5 +1,9 @@
 pragma solidity ^0.8.3;
 
+/*
+      depositAmount/12 * ((100+profitPercent)/100)
+*/
+
 contract ElementContract {
     address private owner = msg.sender;
     uint256 profitPercent = 0;
@@ -56,14 +60,11 @@ contract ElementContract {
           accounts[to][transactionNumber - 1] = (
                   Account(to, numberTrx, depositAmount, depositCounter, depositYield,1)
                   );
-            
         }else{
             accounts[to][transactionNumber - 1] = (
                   Account(accountAux.addr, accountAux.numberTrx, accountAux.depositAmount, accountAux.depositCounter, accountAux.depositYields,1)
                   );
         }
-            
-        
     }
 
     //Function to get the balance of the contract
@@ -86,9 +87,10 @@ contract ElementContract {
             for (uint256 j = 0; j < accounts[addrAux].length; j++) {
                 Account storage accountAux = accounts[addrAux][j];
                 if (accountAux.depositCounter < 12 && accountAux.flagFirstMount > 0 ) {
-                    amount = (accountAux.depositAmount * profitPercent) / 100;
+                    uint256 part1 = accountAux.depositAmount/12;
+                    uint256 part2 = (100+profitPercent)/100;
+                    amount = part1 * part2;
                     sum = sum + amount;
-                    
                 }else{
                  depositYields(0,
                          addrAux,
@@ -104,9 +106,9 @@ contract ElementContract {
                     for (uint256 j = 0; j < accounts[addrAux].length; j++) {
                         Account memory accountAux = accounts[addrAux][j];
                         if (accountAux.depositCounter < 12) {
-                            amount =
-                                (accountAux.depositAmount * profitPercent) /
-                                100;
+                            uint256 part1 = (accountAux.depositAmount/12)*10;
+                            uint256 part2 = ((100+profitPercent)/100)*10;
+                            amount = part1 * part2;
                             depositYields(
                                 amount,
                                 addrAux,
@@ -151,4 +153,3 @@ contract ElementContract {
         _;
     }
 }
-
