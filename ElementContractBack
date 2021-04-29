@@ -1,9 +1,5 @@
 pragma solidity ^0.8.3;
 
-/*
-      depositAmount/12 * ((100+profitPercent)/100)
-*/
-
 contract ElementContract {
     address private owner = msg.sender;
     uint256 profitPercent = 0;
@@ -87,9 +83,7 @@ contract ElementContract {
             for (uint256 j = 0; j < accounts[addrAux].length; j++) {
                 Account storage accountAux = accounts[addrAux][j];
                 if (accountAux.depositCounter < 12 && accountAux.flagFirstMount > 0 ) {
-                    uint256 part1 = accountAux.depositAmount/12;
-                    uint256 part2 = (100+profitPercent)/100;
-                    amount = part1 * part2;
+                    amount =(accountAux.depositAmount / 12 * profitPercent)/100;
                     sum = sum + amount;
                 }else{
                  depositYields(0,
@@ -106,9 +100,7 @@ contract ElementContract {
                     for (uint256 j = 0; j < accounts[addrAux].length; j++) {
                         Account memory accountAux = accounts[addrAux][j];
                         if (accountAux.depositCounter < 12) {
-                            uint256 part1 = (accountAux.depositAmount/12)*10;
-                            uint256 part2 = ((100+profitPercent)/100)*10;
-                            amount = part1 * part2;
+                            amount = (accountAux.depositAmount / 12 * profitPercent)/100;
                             depositYields(
                                 amount,
                                 addrAux,
