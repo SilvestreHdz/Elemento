@@ -145,3 +145,61 @@ contract ElementContract {
         _;
     }
 }
+
+__________________________________________________________________-
+
+
+main.js
+
+
+const Web3 = require('web3')
+const EthereumTx = require('ethereumjs-tx').Transaction
+const solc = require('solc')
+const fs = require('fs')
+
+const web3 = new Web3('https://ropsten.infura.io/v3/0cc2e21d18fb422086421c75dc1c3324')
+
+const myAddress = '0xB7AE3aa9B8c0Ee39a650fB6e94640ab5B840BEEE' 
+const myAddressKey = Buffer.from('3d78a3ed2ac3891a66c4327c513f7a9119b4eda75e208b0b35fc3899c72457f2', 'hex')
+
+const myAddress2 = '0x6827373f0e8B72CE362a61B04230154f02067419'
+const myAddressKey2 = Buffer.from('b60d2305e9d57ad94598bf43da519571ff92977f28b82bd39ca7b7cbfdf32d76', 'hex')
+
+const content = fs.readFileSync('ElementContract.sol').toString()
+var objectSolc= {
+	language: 'Solidity',
+	sources: {
+		'elementContract':{
+			content: content
+		}
+	},
+	settings:{
+		outputSelection:{
+			'*':{
+				'*':['*']
+			}
+		}
+	}
+}
+const output = JSON.parse(solc.compile(JSON.stringify(objectSolc)))
+const bytecodeContract = output.contracts.elementContract.ElementContract.evm.bytecode.object
+
+web3.eth.getTransactionCount(myAddress, (err, txCount) => {
+	const txObject = {
+		nonce: web3.utils.toHex(txCount),
+		to: null,
+		gasLimit: web3.utils.toHex(3000000),
+		gasPrice: web3.utils.toHex(web3.utils.toWei('2', 'gwei')),
+		data: '0x' + bytecodeContract
+	}
+	
+	const tx = new EthereumTx(txObject, {chain:'ropsten', hardfork: 'petersburg'})
+	tx.sign(myAddressKey)
+	
+	const serializedTx = tx.serialize().toString('hex')
+	
+	web3.eth.sendSignedTransaction('0x' + serializedTx).on('receipt', receipt => {
+		console.log('Contrato subido: ' + receipt.contractAddress) 
+	})
+})
+
